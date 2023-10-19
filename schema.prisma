@@ -1,0 +1,24 @@
+datasource db {
+    provider = "postgres"
+    url      = env("POSTGRESQL_URI")
+}
+
+generator db {
+    provider = "go run github.com/steebchen/prisma-client-go"
+}
+
+model Url {
+    id       Int        @id @default(autoincrement())
+    url      String     @unique
+    name     String
+    selected Selected[]
+}
+
+model Selected {
+    id Int @id @default(0)
+
+    selectedUrlId Int?
+    selectedUrl   Url? @relation(fields: [selectedUrlId], references: [id])
+
+    @@index([selectedUrlId])
+}
