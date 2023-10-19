@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 
 	"redirector/db"
@@ -226,9 +227,14 @@ func main() {
 	http.HandleFunc("/selected-url", selectedUrlHandler)
 	http.HandleFunc("/", redirectHandler)
 
-	fmt.Println("Listening on :80")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
-	if err := http.ListenAndServe(":80", nil); err != nil {
+	fmt.Println("Listening on :" + port)
+
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		panic(err)
 	}
 }
