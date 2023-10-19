@@ -226,9 +226,9 @@ func main() {
 	http.HandleFunc("/selected-url", selectedUrlHandler)
 	http.HandleFunc("/", redirectHandler)
 
-	fmt.Println("Listening on :8080")
+	fmt.Println("Listening on :80")
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":80", nil); err != nil {
 		panic(err)
 	}
 }
