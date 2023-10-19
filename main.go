@@ -232,7 +232,7 @@ func main() {
 		port = "8080"
 	}
 
-	fmt.Println("Listening on :" + port)
+	fmt.Println("🚀 Listening on :" + port)
 
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		panic(err)
