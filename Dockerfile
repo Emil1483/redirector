@@ -7,7 +7,7 @@ COPY go.sum .
 RUN go mod download
 
 COPY schema.prisma .
-RUN go run github.com/steebchen/prisma-client-go generate
+RUN go run github.com/steebchen/prisma-client-go db push
 
 COPY . .
 
