@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 
@@ -38,7 +41,67 @@ func redirectHandler(w http.ResponseWriter, req *http.Request) {
 		redirectURL += "?" + req.URL.RawQuery
 	}
 
-	http.Redirect(w, req, redirectURL, http.StatusMovedPermanently)
+	fmt.Println("Proxying to", selectedUrl.URL)
+
+	requestBody, err := ioutil.ReadAll(req.Body)
+
+	if err != nil {
+		http.Error(w, "Error reading the request body", http.StatusInternalServerError)
+		return
+	}
+
+	targetURL, err := url.Parse(redirectURL)
+
+	if err != nil {
+		http.Error(w, "Error parsing target URL", http.StatusInternalServerError)
+		return
+	}
+
+	targetRequest := &http.Request{
+		Method: req.Method,
+		URL:    targetURL,
+		Header: make(http.Header),
+		Body:   ioutil.NopCloser(bytes.NewReader(requestBody)),
+	}
+
+	for key, values := range req.Header {
+		for _, value := range values {
+			targetRequest.Header.Add(key, value)
+		}
+	}
+
+	fmt.Println("Making request", targetRequest)
+
+	client := http.Client{}
+	targetResponse, err := client.Do(targetRequest)
+
+	if err != nil {
+		http.Error(w, "Error making request to target endpoint", http.StatusInternalServerError)
+		return
+	}
+
+	defer targetResponse.Body.Close()
+
+	fmt.Println("Response", targetResponse)
+
+	for key, values := range targetResponse.Header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
+
+	w.WriteHeader(targetResponse.StatusCode)
+
+	body, err := ioutil.ReadAll(targetResponse.Body)
+
+	if err != nil {
+		http.Error(w, "Error reading target response body", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("Response body", body)
+
+	w.Write(body)
 }
 
 func urlsHandler(w http.ResponseWriter, r *http.Request) {
@@ -229,7 +292,7 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "3000"
 	}
 
 	fmt.Println("🚀 Listening on :" + port)
