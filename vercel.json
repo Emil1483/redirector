@@ -1,7 +1,7 @@
 {
   "build": {
     "env": {
-      "GO_BUILD_FLAGS": "-idflags '-s -w '"
+      "GO_BUILD_FLAGS": "-idflags '-s -w'"
     }
   }
 }
