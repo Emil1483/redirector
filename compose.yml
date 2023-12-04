@@ -12,9 +12,9 @@ services:
   redirector:
     build: .
     environment:
-      - POSTGRESQL_URI=postgresql://root:rootpassword@postgres:5432/redirector
+      - DATABASE_URL=postgresql://root:rootpassword@postgres:5432/redirector
     ports:
-      - "${PORT:-8080}:${PORT:-8080}"
+      - "${PORT:-3000}:${PORT:-3000}"
 
 volumes:
   postgres_data:

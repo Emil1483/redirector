@@ -262,6 +262,27 @@ func selectedUrlHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	// URL to make the GET request
+	url := "https://catfact.ninja/fact"
+
+	// Make the GET request
+	response, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Error making GET request:", err)
+		return
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error reading response body:", err)
+		return
+	}
+
+	// Print the response to the console
+	fmt.Println("Response from", url, ":\n", string(body))
+
 	client = db.NewClient()
 	if err := client.Prisma.Connect(); err != nil {
 		panic(err)
@@ -273,7 +294,7 @@ func main() {
 		panic(err)
 	}
 
-	_, err := client.Selected.UpsertOne(
+	_, err = client.Selected.UpsertOne(
 		db.Selected.ID.Equals(0),
 	).Create(
 		db.Selected.SelectedURLID.SetOptional(nil),
