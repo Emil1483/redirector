@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 
@@ -50,27 +49,20 @@ func redirectHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	targetURL, err := url.Parse(redirectURL)
+	defer req.Body.Close()
+
+	targetRequest, err := http.NewRequest(req.Method, redirectURL, bytes.NewBuffer(requestBody))
 
 	if err != nil {
-		http.Error(w, "Error parsing target URL", http.StatusInternalServerError)
+		http.Error(w, "Error creating target request", http.StatusInternalServerError)
 		return
 	}
 
-	targetRequest := &http.Request{
-		Method: req.Method,
-		URL:    targetURL,
-		Header: make(http.Header),
-		Body:   ioutil.NopCloser(bytes.NewReader(requestBody)),
-	}
+	fmt.Println("Making request", targetRequest)
 
 	for key, values := range req.Header {
-		for _, value := range values {
-			targetRequest.Header.Add(key, value)
-		}
+		targetRequest.Header.Set(key, values[0])
 	}
-
-	fmt.Println("Making request", targetRequest)
 
 	client := http.Client{}
 	targetResponse, err := client.Do(targetRequest)
@@ -100,6 +92,13 @@ func redirectHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	fmt.Println("Response body", body)
+
+	var jsonResponse map[string]interface{}
+	if err := json.Unmarshal(body, &jsonResponse); err == nil {
+		fmt.Println("Parsed JSON response body:", jsonResponse)
+	} else {
+		fmt.Println("Could not parse response body to JSON")
+	}
 
 	w.Write(body)
 }
